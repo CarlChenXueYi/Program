@@ -15,66 +15,63 @@ class MyVisitor extends HelloBaseVisitor<Integer> {
 	@Override
 	public Integer visitMainnode(HelloParser.MainnodeContext ctx) {
 
-		//this.tabs++;
+		// this.tabs++;
 		visit(ctx.getChild(0));
-		//this.tabs--;
+		// this.tabs--;
 
 		return 0;
 	}
 
 	@Override
 	public Integer visitSequencenode(HelloParser.SequencenodeContext ctx) {
-		//this.printTabs();
-		//this.tabs++;
+		// this.printTabs();
+		// this.tabs++;
 		// visit(ctx.statement(0));
 		// if(ctx.statement(1) == null && ctx.sequencenode() != null)
 		// visit(ctx.sequencenode());
 		// else
 		// visit(ctx.statement(1));
-		if(ctx.statement(0) != null && ctx.getChild(1) != null)
-		{
-				visit(ctx.getChild(0));
-				System.out.println("L’’:");
-				visit(ctx.getChild(1));
-		}
-		else
-		{
+		if (ctx.statement(0) != null && ctx.getChild(1) != null) {
+			visit(ctx.getChild(0));
+			System.out.println("L’’:");
+			visit(ctx.getChild(1));
+		} else {
 			visit(ctx.getChild(0));
 			visit(ctx.getChild(1));
 		}
-		
-		//this.tabs--;
+
+		// this.tabs--;
 
 		return 0;
 	}
 
 	@Override
 	public Integer visitIfnode(HelloParser.IfnodeContext ctx) {
-		//this.printTabs();
-		//System.out.println("<IfNode> if");
-		//this.tabs++;
+		// this.printTabs();
+		// System.out.println("<IfNode> if");
+		// this.tabs++;
 		System.out.printf("if (");
 		visit(ctx.bexpr());
 		System.out.println(" ) then L₁:");
 		visit(ctx.blocknode(0));
-		System.out.println("else L₂");
+		System.out.println("else L₂:");
 		visit(ctx.blocknode(1));
-		//this.tabs--;
+		// this.tabs--;
 
 		return 0;
 	}
 
 	@Override
 	public Integer visitWhilenode(HelloParser.WhilenodeContext ctx) {
-		//this.printTabs();
-		//System.out.println("<WhileNode> while");
+		// this.printTabs();
+		// System.out.println("<WhileNode> while");
 		System.out.printf("while (");
-		//this.tabs++;
+		// this.tabs++;
 		visit(ctx.bexpr());
 		System.out.println(" )");
 		System.out.printf("do L₁:\n");
 		visit(ctx.blocknode());
-		//this.tabs--;
+		// this.tabs--;
 
 		return 0;
 	}
@@ -89,12 +86,12 @@ class MyVisitor extends HelloBaseVisitor<Integer> {
 
 	@Override
 	public Integer visitBlocknode(HelloParser.BlocknodeContext ctx) {
-		//this.printTabs();
-		//System.out.println("<BlockNode> {}");
+		// this.printTabs();
+		// System.out.println("<BlockNode> {}");
 		if (ctx.getChild(0) == null)
 			return 0;
 
-		//this.tabs++;
+		// this.tabs++;
 		System.out.println("{");
 		if (ctx.sequencenode() != null) {
 			visit(ctx.sequencenode());
@@ -102,7 +99,7 @@ class MyVisitor extends HelloBaseVisitor<Integer> {
 		if (ctx.statement() != null) {
 			visit(ctx.statement());
 		}
-		//this.tabs--;
+		// this.tabs--;
 		System.out.println("\n}");
 		return 0;
 	}
@@ -110,14 +107,14 @@ class MyVisitor extends HelloBaseVisitor<Integer> {
 	@Override
 	public Integer visitAssigmentnode(HelloParser.AssigmentnodeContext ctx) {
 		this.printTabs();
-		//System.out.println("<AssignmentNode> pStart :=");
+		// System.out.println("<AssignmentNode> pStart :=");
 
-		//this.tabs++;
-		//this.printTabs();
+		// this.tabs++;
+		// this.printTabs();
 		visit(ctx.getChild(0));
 		System.out.printf(" := ");
 		visit(ctx.getChild(2));
-		//this.tabs--;
+		// this.tabs--;
 		System.out.printf(";");
 		return 0;
 	}
@@ -149,7 +146,7 @@ class MyVisitor extends HelloBaseVisitor<Integer> {
 	@Override
 	public Integer visitLessernode(HelloParser.LessernodeContext ctx) {
 		this.printTabs();
-		//System.out.println("<LesserNode> <");
+		// System.out.println("<LesserNode> <");
 
 		return 0;
 	}
@@ -157,7 +154,7 @@ class MyVisitor extends HelloBaseVisitor<Integer> {
 	@Override
 	public Integer visitAndnode(HelloParser.AndnodeContext ctx) {
 		this.printTabs();
-		//System.out.println("<AndNode> &&");
+		// System.out.println("<AndNode> &&");
 
 		return 0;
 	}
@@ -180,17 +177,17 @@ class MyVisitor extends HelloBaseVisitor<Integer> {
 
 	@Override
 	public Integer visitBracketnode(HelloParser.BracketnodeContext ctx) {
-		//this.printTabs();
-		//System.out.println("<BracketNode> ()");
+		// this.printTabs();
+		// System.out.println("<BracketNode> ()");
 
-		//this.tabs++;
+		// this.tabs++;
 		if (ctx.expr() != null)
 			visit(ctx.expr());
 
 		else if (ctx.bexpr() != null)
 			visit(ctx.bexpr());
 
-		//this.tabs--;
+		// this.tabs--;
 		return 0;
 	}
 
@@ -206,31 +203,31 @@ class MyVisitor extends HelloBaseVisitor<Integer> {
 			visit(ctx.bracketnode());
 
 		if (ctx.plusnode() != null) {
-			//visit(ctx.plusnode());
-			//this.tabs++;
+			// visit(ctx.plusnode());
+			// this.tabs++;
 			visit(ctx.expr(0));
 			System.out.printf(" + ");
 			visit(ctx.expr(1));
-			//this.tabs--;
+			// this.tabs--;
 		}
 
 		if (ctx.minusnode() != null) {
-			//visit(ctx.minusnode());
+			// visit(ctx.minusnode());
 
-			//this.tabs++;
+			// this.tabs++;
 			visit(ctx.expr(0));
 			System.out.printf(" - ");
 			visit(ctx.expr(1));
-			//this.tabs--;
+			// this.tabs--;
 		}
 		if (ctx.timesnode() != null) {
-			//visit(ctx.timesnode());
+			// visit(ctx.timesnode());
 
-			//this.tabs++;
+			// this.tabs++;
 			visit(ctx.expr(0));
 			System.out.printf(" * ");
 			visit(ctx.expr(1));
-			//this.tabs--;
+			// this.tabs--;
 		}
 		return 0;
 	}
@@ -272,15 +269,15 @@ class MyVisitor extends HelloBaseVisitor<Integer> {
 		}
 
 		if (ctx.lessernode() != null) {
-			//visit(ctx.lessernode());
-		
-			//this.tabs++;
-			//this.printTabs();
+			// visit(ctx.lessernode());
+
+			// this.tabs++;
+			// this.printTabs();
 			visit(ctx.expr(0));
 			System.out.printf(" < ");
 			visit(ctx.expr(1));
-			//this.tabs--;
-			//System.out.println();
+			// this.tabs--;
+			// System.out.println();
 		}
 		if (ctx.equalnode() != null) {
 			visit(ctx.equalnode());
@@ -297,7 +294,7 @@ class MyVisitor extends HelloBaseVisitor<Integer> {
 
 	@Override
 	public Integer visitIntnode(HelloParser.IntnodeContext ctx) {
-	
+
 		System.out.printf(ctx.getText());
 		return 0;
 	}
