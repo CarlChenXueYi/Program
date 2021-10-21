@@ -1,0 +1,18 @@
+(pc=??∧pc'=L1∧x=0∧same(x)) ∨
+(pc=L1∧pc'=L2∧y=0∧same(y)) ∨
+(pc=L2∧pc'=L3∧z=0∧same(z)) ∨
+(pc=L3∧pc'=L4∧x=y+1∧same(x)) ∨
+(pc=L4∧pc'=L5∧z=z+2∧same(z)) ∨
+while:
+(pc=L5∧pc'=L₁∧(y<3)∧same(V)) ∨
+(pc=L5∧pc'=L7∧¬(y<3)∧same(V)) ∨
+if:
+(pc=L₁∧pc'=L₁₁∧(x<y)∧same(V)) ∨
+(pc=L₁∧pc'=L₂₂∧¬(x<y)∧same(V)) ∨
+
+(pc=L₁₁∧pc'=L6∧(x=x+1)∧same(x)) ∨
+(pc=L₂₂∧pc'=L6∧(y=y+1)∧same(y)) ∨
+
+(pc=L6∧pc'=L7∧(y=y+1)∧same(y)) ∨
+
+

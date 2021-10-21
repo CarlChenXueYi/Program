@@ -1,4 +1,4 @@
-// Generated from /root/IMP-Parser/ANTLR/Hello.g4 by ANTLR 4.8
+// Generated from /root/Program/homework/analysis_and_verification_of_system/ANTLR/Hello.g4 by ANTLR 4.8
 import org.antlr.v4.runtime.atn.*;
 import org.antlr.v4.runtime.dfa.DFA;
 import org.antlr.v4.runtime.*;

@@ -5,6 +5,7 @@ import org.antlr.v4.runtime.tree.*;
 
 import java.io.IOException;
 import java.io.*;
+
 public class Main {
     public static void main(String[] args) throws IOException {
 
@@ -20,11 +21,11 @@ public class Main {
         String fileName = "input1";
         CharStream input = CharStreams.fromFileName(fileName);
 
-		try {
-    		System.setOut(new PrintStream(new File("arbore")));
-		} catch (Exception e) {
-     		e.printStackTrace();
-		}
+        try {
+            System.setOut(new PrintStream(new File("labeled")));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         // Definim Lexer-ul
         lexer = new HelloLexer(input);
