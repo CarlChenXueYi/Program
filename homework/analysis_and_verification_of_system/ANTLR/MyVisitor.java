@@ -1,26 +1,67 @@
 import java.lang.Integer;
+import java.util.Stack;
 
 import javax.lang.model.util.ElementScanner6;
 
 class MyVisitor extends HelloBaseVisitor<Integer> {
-	private int label_seq = 0;
-	private int if_seq = 0;
-	private int while_seq = 0;
+	private int label_seq          = 0;
+	private int if_seq             = 0;
+	private int while_seq          = 0;
 	private String global_varValue = "";
-	private String global_varName = "";
-
+	private String global_varName  = "";
+	private String true_varName;
 	private String global_bexpr = "";
 	
-	private boolean global_in_if = false;
+	private boolean global_in_if    = false;
 	private boolean global_in_while = false;
 	
+	//如果是while循环：推入1，如果是if判断：推入2
+	private Stack<Integer> st = new Stack<Integer>();
 	// Functie rudimentara pentru a printa tab-uri
-	private void printTabs() {
-		for (int i = 0; i < this.tabs; i++) {
-			System.out.print("\t");
+	// private void printTabs() {
+	// 	for (int i = 0; i < this.tabs; i++) {
+	// 		System.out.print("\t");
+	// 	}
+	// }
+
+	public String GetInPC()
+	{
+		String in_pc;
+		in_pc = "L" + String.valueOf(this.label_seq);
+		if (this.global_in_if)
+		{
+			in_pc = "I" + String.valueOf(this.if_seq);
+			this.global_in_if = false;
 		}
+		if (this.global_in_while)
+		{
+			in_pc = "W" + String.valueOf(this.while_seq);
+			this.global_in_while = false;
+		}
+		return in_pc;
 	}
 
+	public String GetOutPC(String func)
+	{
+		//String out_pc;
+		if (func=="seq")
+		{
+			this.label_seq++;
+			return "L" + String.valueOf(label_seq);
+		}
+		if (func=="if")
+		{
+			this.if_seq++;
+			return "I" + String.valueOf(if_seq);
+		}
+		if (func=="while")
+		{
+			this.while_seq++;
+			return "W" + String.valueOf(while_seq);
+		}
+		return "";
+		//return out_pc;
+	}
 	@Override
 	public Integer visitMainnode(HelloParser.MainnodeContext ctx) {
 
@@ -35,27 +76,13 @@ class MyVisitor extends HelloBaseVisitor<Integer> {
 	public Integer visitSequencenode(HelloParser.SequencenodeContext ctx) {
 		if (ctx.statement(0) != null && ctx.getChild(1) != null) {
 			visit(ctx.getChild(0));
-			label_seq++;
-			String in_pc = "L" + (label_seq+"");
-			if (global_in_if)
-			{
-				String str_if_seq = if_seq+"";
-				in_pc = "I" + str_if_seq;
-				label_seq--;
-				global_in_if = false;
-			}
-			if (global_in_while)
-			{
-				String str_while_seq = while_seq+"";
-				in_pc = "W" + str_while_seq;
-				label_seq--;
-				global_in_while = false;
-			}
-			label_seq++;
-			String str_label_seq = label_seq+"";
-			System.out.println(this.global_varName+"'="+this.global_varValue+"∧"+"Same("+this.global_varName+")"+"∧"+"pc="+in_pc+"∧"+"pc'="+"L"+str_label_seq);
+			String in_pc = GetInPC();
+			String out_pc = GetOutPC("seq");
+			System.out.println(this.true_varName+"'="+this.global_varValue+"∧"+"Same("+this.true_varName+")"+"∧"+"pc="+in_pc+"∧"+"pc'="+out_pc);
 			visit(ctx.getChild(1));
 		} else {
+			global_varName  = "";
+			global_varValue = "";
 			visit(ctx.getChild(0));
 			visit(ctx.getChild(1));
 		}
@@ -64,65 +91,69 @@ class MyVisitor extends HelloBaseVisitor<Integer> {
 
 	@Override
 	public Integer visitIfnode(HelloParser.IfnodeContext ctx) {
-		String in_pc = "L" + (label_seq+"");
-		if (global_in_if)
-		{
-			String str_if_seq = if_seq+"";
-			in_pc = "I" + str_if_seq;
-			global_in_if = false;
-		}
-		if (global_in_while)
-		{
-			String str_while_seq = while_seq+"";
-			in_pc = "W" + str_while_seq;
-			global_in_while = false;
-		}
+		String in_pc = GetInPC();
 
 		//control if_seq
-		if_seq++;
+		if_seq += 1;
 
+		global_bexpr = "";
 		visit(ctx.bexpr());
-
-		//output the content after if(bexpr) then ???
-		System.out.println("("+global_bexpr+")"+"∧same(V)∧pc="+in_pc+"pc'="+"I"+String.valueOf(if_seq));
-		
+		System.out.println("("+global_bexpr+")"+"∧same(V)∧pc="+in_pc+"pc'="+if_seq);
 		global_in_if = true;
+		st.push(2);
 		visit(ctx.blocknode(0));
-		//
-		//用一个全局变量把最后一次赋值语句，无论是【赋值】还是【条件判断】还是【循环】最后一句肯定是赋值，并且最后一句肯定不是顺序类型，是可以打标签的
-		//struct {varName,varValue}
-		//前面一个pc也要带出来，设置一个全局变量，frontLabel，进入block时，把I1带进去，同时在block中判断全局I1是否有值，有的话如果里面有变化就随时修改I1
-		//varName'=varValue & same{varName} & pc=global_i1 & pc'=i2
+		st.pop();
+
+		String out_pc = GetOutPC("if");
+		// if(st.peek()==1)
+		// 	out_pc = while_seq;
+		// if(st.peek()==2)
+		// 	out_pc = if_seq;
+
+		System.out.println(true_varName+"'="+global_varValue+"∧same("+true_varName+")∧pc="+in_pc+"pc'="+out_pc);
 
 		//control if_seq
-		if_seq++;
+		if_seq += 1;
 
-		System.out.println("¬("+global_bexpr+")"+"∧same(V)∧pc="+in_pc+"pc'="+"I"+String.valueOf(if_seq));
-
+		System.out.println("¬("+global_bexpr+")"+"∧same(V)∧pc="+in_pc+"pc'="+if_seq);
+		global_bexpr = "";
 		global_in_if = true;
+		st.push(2);
 		visit(ctx.blocknode(1));
-
+		st.pop();
+		System.out.println(true_varName+"'="+global_varValue+"∧same("+true_varName+")∧pc="+in_pc+"pc'="+out_pc);
 		return 0;
 	}
 
 	@Override
 	public Integer visitWhilenode(HelloParser.WhilenodeContext ctx) {
-		// this.printTabs();
-		// System.out.println("<WhileNode> while");
-		System.out.printf("while (");
-		// this.tabs++;
+		String in_pc = GetInPC();
+		int first_out = ++while_seq;
+		
+		this.global_bexpr = "";
 		visit(ctx.bexpr());
-		System.out.println(" )");
-		System.out.printf("do L₁:\n");
-		visit(ctx.blocknode());
-		// this.tabs--;
+		String bexpr = this.global_bexpr;
+		System.out.println("pc="+in_pc+"∧pc'=W"+String.valueOf(first_out)+"∧"+this.global_bexpr+"∧Same(V)");
+		
 
+		
+		visit(ctx.blocknode());
+		
+		int second_out = ++label_seq;
+		System.out.println("pc="+in_pc+"∧pc'=L"+String.valueOf(second_out)+"∧¬"+this.global_bexpr+"∧Same(V)");
+
+		//带出来的最后的结果要显示
+		// if (global_varName!="")
+		// {
+		// 	System.out.println(true_varName+"'="+global_varValue+"∧same("+true_varName+")∧pc="+in_pc+"pc'="+out_pc);
+		// }
+		
 		return 0;
 	}
 
 	@Override
 	public Integer visitStatement(HelloParser.StatementContext ctx) {
-
+		//System.out.println("hello and test");
 		visit(ctx.getChild(0));
 
 		return 0;
@@ -130,31 +161,28 @@ class MyVisitor extends HelloBaseVisitor<Integer> {
 
 	@Override
 	public Integer visitBlocknode(HelloParser.BlocknodeContext ctx) {
-		// this.printTabs();
-		// System.out.println("<BlockNode> {}");
+
 		if (ctx.getChild(0) == null)
 			return 0;
 
-		// this.tabs++;
-		System.out.println("{");
 		if (ctx.sequencenode() != null) {
 			visit(ctx.sequencenode());
 		}
 		if (ctx.statement() != null) {
 			visit(ctx.statement());
 		}
-		// this.tabs--;
-		System.out.println("\n}");
 		return 0;
 	}
 
 	@Override
 	public Integer visitAssigmentnode(HelloParser.AssigmentnodeContext ctx) {
+		global_varName = "";
+		true_varName   = "";
 		visit(ctx.getChild(0));
-		System.out.printf(" := ");
+		true_varName    = global_varName;
+		global_varValue = "";
 		visit(ctx.getChild(2));
-		// this.tabs--;
-		System.out.printf(";");
+
 		return 0;
 	}
 	//以下好像都没有用到
@@ -216,17 +244,17 @@ class MyVisitor extends HelloBaseVisitor<Integer> {
 
 	@Override
 	public Integer visitBracketnode(HelloParser.BracketnodeContext ctx) {
-		// this.printTabs();
-		// System.out.println("<BracketNode> ()");
 
-		// this.tabs++;
 		if (ctx.expr() != null)
 			visit(ctx.expr());
 
 		else if (ctx.bexpr() != null)
+		{
+			global_bexpr += "(";
 			visit(ctx.bexpr());
-
-		// this.tabs--;
+			global_bexpr += ")";
+		}
+		
 		return 0;
 	}
 
@@ -242,34 +270,31 @@ class MyVisitor extends HelloBaseVisitor<Integer> {
 			visit(ctx.bracketnode());
 
 		if (ctx.plusnode() != null) {
-			// visit(ctx.plusnode());
-			// this.tabs++;
 			visit(ctx.expr(0));
-			System.out.printf(" + ");
+
+			global_bexpr    += "+";
 			global_varValue += "+";
+			
 			visit(ctx.expr(1));
-			// this.tabs--;
+
 		}
 
 		if (ctx.minusnode() != null) {
-			// visit(ctx.minusnode());
 
-			// this.tabs++;
 			visit(ctx.expr(0));
-			System.out.printf(" - ");
+
+			global_bexpr    += "-";
 			global_varValue += "-";
 			visit(ctx.expr(1));
-			// this.tabs--;
+
 		}
 		if (ctx.timesnode() != null) {
-			// visit(ctx.timesnode());
 
-			// this.tabs++;
 			visit(ctx.expr(0));
-			System.out.printf(" * ");
+			global_bexpr    += "*";
 			global_varValue += "*";
 			visit(ctx.expr(1));
-			// this.tabs--;
+
 		}
 		return 0;
 	}
@@ -283,53 +308,39 @@ class MyVisitor extends HelloBaseVisitor<Integer> {
 			visit(ctx.bracketnode());
 
 		if (ctx.notnode() != null) {
-			visit(ctx.notnode());
-			this.tabs++;
+			global_bexpr    += "!";
+			global_varValue += "!";
 			visit(ctx.bexpr(0));
-			this.tabs--;
-			System.out.println();
 		}
 
 		if (ctx.andnode() != null) {
-			visit(ctx.andnode());
-
-			this.tabs++;
 			visit(ctx.bexpr(0));
+			global_bexpr    += "&";
+			global_varValue += "&";
 			visit(ctx.bexpr(1));
-			this.tabs--;
-			System.out.println();
 		}
 
 		if (ctx.ornode() != null) {
-			visit(ctx.ornode());
-
-			this.tabs++;
+			//isit(ctx.ornode());
 			visit(ctx.bexpr(0));
+
+			global_bexpr    += "|";
+			global_varValue += "|";
 			visit(ctx.bexpr(1));
-			this.tabs--;
-			System.out.println();
 		}
 
 		if (ctx.lessernode() != null) {
-			// visit(ctx.lessernode());
-
-			// this.tabs++;
-			// this.printTabs();
 			visit(ctx.expr(0));
-			System.out.printf(" < ");
+			global_bexpr    += "<";
 			global_varValue += "<";
 			visit(ctx.expr(1));
-			// this.tabs--;
-			// System.out.println();
 		}
 		if (ctx.equalnode() != null) {
 			visit(ctx.equalnode());
-
-			this.tabs++;
 			visit(ctx.expr(0));
+			global_bexpr    += "==";
+			global_varValue += "==";
 			visit(ctx.expr(1));
-			this.tabs--;
-			System.out.println();
 		}
 
 		return 0;
@@ -337,23 +348,28 @@ class MyVisitor extends HelloBaseVisitor<Integer> {
 
 	@Override
 	public Integer visitIntnode(HelloParser.IntnodeContext ctx) {
+		global_varName  += ctx.getText();
 		global_varValue += ctx.getText();
-		//System.out.printf(ctx.getText());
+		global_bexpr    += ctx.getText();
+
 		return 0;
 	}
 
 	@Override
 	public Integer visitVarnode(HelloParser.VarnodeContext ctx) {
+		global_varName  += ctx.getText();
 		global_varValue += ctx.getText();
-		//System.out.printf(ctx.getText());
+		global_bexpr    += ctx.getText();
 
 		return 0;
 	}
 
 	@Override
 	public Integer visitBoolnode(HelloParser.BoolnodeContext ctx) {
+
+		global_bexpr    += ctx.getText();
 		global_varValue += ctx.getText();
-		//System.out.printf(ctx.getText());
+
 		return 0;
 	}
 }
