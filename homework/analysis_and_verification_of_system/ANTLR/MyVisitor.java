@@ -40,11 +40,18 @@ class MyVisitor extends HelloBaseVisitor<Integer> {
 
 	public String GetLastPC() {
 		String out_pc;
-		this.label_seq++;
-		out_pc = "L" + String.valueOf(label_seq);
+		out_pc = "L" + String.valueOf(++this.label_seq);
 		if (st.isEmpty())
 			return out_pc;
-		int temp = st.peek();
+
+		int temp = st.pop();
+
+		if (st.isEmpty()) {
+			st.push(temp);
+			return out_pc;
+		}
+
+		temp = st.peek();
 		if (temp == 1) {
 			while_seq++;
 			out_pc = "W" + String.valueOf(while_seq);
@@ -59,8 +66,7 @@ class MyVisitor extends HelloBaseVisitor<Integer> {
 	public String GetOutPC(String func) {
 		// String out_pc;
 		if (func == "seq") {
-			this.label_seq++;
-			return "L" + String.valueOf(label_seq);
+			return "L" + String.valueOf(++this.label_seq);
 		}
 		if (func == "if") {
 			this.if_seq++;
@@ -88,17 +94,36 @@ class MyVisitor extends HelloBaseVisitor<Integer> {
 	public Integer visitSequencenode(HelloParser.SequencenodeContext ctx) {
 		if (ctx.statement(0) != null && ctx.getChild(1) != null) {
 			if (ctx.sequencenode() == null) {
-				visit(ctx.getChild(0));
-				String in_pc = GetInPC();
-				String out_pc = GetLastPC();
-				System.out.println(this.true_varName + "'=" + this.global_varValue + "∧" + "Same(" + this.true_varName
-						+ ")" + "∧" + "pc=" + in_pc + "∧" + "pc'=" + out_pc);
-				this.true_varName = "";
-				this.global_varName = "";
-				this.global_varValue = "";
-				visit(ctx.getChild(1));
-				System.out.println(this.true_varName + "'=" + this.global_varValue + "∧" + "Same(" + this.true_varName
-						+ ")" + "∧" + "pc=" + in_pc + "∧" + "pc'=" + GetLastPC());
+
+				// if (ctx.getChild(1) == )
+				if (ctx.statement(0).assigmentnode() == null) {
+					visit(ctx.getChild(0));
+					String in_pc = GetInPC();
+					visit(ctx.getChild(1));
+					System.out.println(this.true_varName + "'=" + this.global_varValue + "∧" + "Same("
+							+ this.true_varName + ")" + "∧" + "pc=" + in_pc + "∧" + "pc'=" + GetLastPC());
+				} else if (ctx.statement(1).assigmentnode() == null) {
+					visit(ctx.getChild(0));
+					String in_pc = GetInPC();
+					String out_pc = GetLastPC();
+					System.out.println(this.true_varName + "'=" + this.global_varValue + "∧" + "Same("
+							+ this.true_varName + ")" + "∧" + "pc=" + in_pc + "∧" + "pc'=" + out_pc);
+					this.true_varName = "";
+					this.global_varName = "";
+					this.global_varValue = "";
+					visit(ctx.getChild(1));
+				} else {
+					visit(ctx.getChild(0));
+					String in_pc = GetInPC();
+					System.out.println(this.true_varName + "'=" + this.global_varValue + "∧" + "Same("
+							+ this.true_varName + ")" + "∧" + "pc=" + in_pc + "∧" + "pc'=" + GetLastPC());
+					this.true_varName = "";
+					this.global_varName = "";
+					this.global_varValue = "";
+					visit(ctx.getChild(1));
+					System.out.println(this.true_varName + "'=" + this.global_varValue + "∧" + "Same("
+							+ this.true_varName + ")" + "∧" + "pc=" + in_pc + "∧" + "pc'=" + GetLastPC());
+				}
 			} else {
 				visit(ctx.getChild(0));
 				String in_pc = GetInPC();
@@ -110,7 +135,7 @@ class MyVisitor extends HelloBaseVisitor<Integer> {
 		} else {
 			global_varName = "";
 			global_varValue = "";
-
+			System.out.println("hi");
 			visit(ctx.getChild(0));
 			visit(ctx.getChild(1));
 		}
@@ -123,13 +148,13 @@ class MyVisitor extends HelloBaseVisitor<Integer> {
 		String in_pc = GetInPC();
 
 		int first_out = ++if_seq;
-		int second_out = ++if_seq;
 
 		global_bexpr = "";
 		visit(ctx.bexpr());
 		String bexpr = this.global_bexpr;
 		System.out.println(this.global_bexpr + "∧same(V)∧pc=" + in_pc + "∧pc'=I" + String.valueOf(first_out));
 		this.global_in_if = true;
+		++this.label_seq;
 		st.push(2);
 		visit(ctx.blocknode(0));
 		st.pop();
@@ -144,6 +169,7 @@ class MyVisitor extends HelloBaseVisitor<Integer> {
 		// true_varName + "'=" + global_varValue + "∧same(" + true_varName + ")∧pc=" +
 		// in_pc + "pc'=" + out_pc);
 
+		int second_out = ++if_seq;
 		System.out.println("¬" + bexpr + "∧same(V)∧pc=" + in_pc + "∧pc'=I" + String.valueOf(second_out));
 		this.global_bexpr = "";
 		this.global_in_if = true;
@@ -170,16 +196,10 @@ class MyVisitor extends HelloBaseVisitor<Integer> {
 		st.push(1);
 		visit(ctx.blocknode());
 		st.pop();
-		int second_out = ++label_seq;
-		System.out.println("¬" + bexpr + "∧Same(V)∧pc=" + in_pc + "∧pc'=W" + String.valueOf(first_out));
-		// System.out.println("pc=" + in_pc + "∧pc'=L" + String.valueOf(second_out) +
-		// "∧¬" + bexpr + "∧Same(V)");
-
-		// 带出来的最后的结果要显示
-		// if (global_varName!="")
-		// {
-		// System.out.println(true_varName+"'="+global_varValue+"∧same("+true_varName+")∧pc="+in_pc+"pc'="+out_pc);
-		// }
+		if (ctx.blocknode().sequencenode() == null) {
+			++label_seq;
+		}
+		System.out.println("¬" + bexpr + "∧Same(V)∧pc=" + in_pc + "∧pc'=L" + String.valueOf(label_seq));
 
 		return 0;
 	}
@@ -199,14 +219,20 @@ class MyVisitor extends HelloBaseVisitor<Integer> {
 
 		if (ctx.sequencenode() != null) {
 			visit(ctx.sequencenode());
+
 		}
 		if (ctx.statement() != null) {
-			if (ctx.getChild(0) != null && ctx.getChild(1) == null)
-			{
-				这里可以做一些操作了？
+			if (ctx.statement().assigmentnode() != null) {
+				String in_pc = GetInPC();
+				visit(ctx.statement());
+				System.out.println(this.true_varName + "'=" + this.global_varValue + "∧" + "Same(" + this.true_varName
+						+ ")" + "∧" + "pc=" + in_pc + "∧" + "pc'=L" + String.valueOf(this.label_seq));
+				this.true_varName = "";
+				this.global_varName = "";
+				this.global_varValue = "";
+			} else {
+				visit(ctx.statement());
 			}
-			System.out.println("hi?look");
-			visit(ctx.statement());
 		}
 		return 0;
 	}
