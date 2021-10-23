@@ -4,15 +4,15 @@ import java.util.Stack;
 import javax.lang.model.util.ElementScanner6;
 
 class MyVisitor extends HelloBaseVisitor<Integer> {
-	private int label_seq = 0;
-	private int if_seq = 0;
-	private int while_seq = 0;
+	private int label_seq          = 0;
+	private int if_seq             = 0;
+	private int while_seq          = 0;
 	private String global_varValue = "";
-	private String global_varName = "";
+	private String global_varName  = "";
 	private String true_varName;
 	private String global_bexpr = "";
 
-	private boolean global_in_if = false;
+	private boolean global_in_if    = false;
 	private boolean global_in_while = false;
 
 	// 如果是while循环：推入1，如果是if判断：推入2
@@ -28,11 +28,11 @@ class MyVisitor extends HelloBaseVisitor<Integer> {
 		String in_pc;
 		in_pc = "L" + String.valueOf(this.label_seq);
 		if (this.global_in_if) {
-			in_pc = "I" + String.valueOf(this.if_seq);
+			in_pc             = "I" + String.valueOf(this.if_seq);
 			this.global_in_if = false;
 		}
 		if (this.global_in_while) {
-			in_pc = "W" + String.valueOf(this.while_seq);
+			in_pc                = "W" + String.valueOf(this.while_seq);
 			this.global_in_while = false;
 		}
 		return in_pc;
@@ -104,12 +104,12 @@ class MyVisitor extends HelloBaseVisitor<Integer> {
 							+ this.true_varName + ")" + "∧" + "pc=" + in_pc + "∧" + "pc'=" + GetLastPC());
 				} else if (ctx.statement(1).assigmentnode() == null) {
 					visit(ctx.getChild(0));
-					String in_pc = GetInPC();
+					String in_pc  = GetInPC();
 					String out_pc = GetLastPC();
 					System.out.println(this.true_varName + "'=" + this.global_varValue + "∧" + "Same("
 							+ this.true_varName + ")" + "∧" + "pc=" + in_pc + "∧" + "pc'=" + out_pc);
-					this.true_varName = "";
-					this.global_varName = "";
+					this.true_varName    = "";
+					this.global_varName  = "";
 					this.global_varValue = "";
 					visit(ctx.getChild(1));
 				} else {
@@ -117,8 +117,8 @@ class MyVisitor extends HelloBaseVisitor<Integer> {
 					String in_pc = GetInPC();
 					System.out.println(this.true_varName + "'=" + this.global_varValue + "∧" + "Same("
 							+ this.true_varName + ")" + "∧" + "pc=" + in_pc + "∧" + "pc'=" + GetLastPC());
-					this.true_varName = "";
-					this.global_varName = "";
+					this.true_varName    = "";
+					this.global_varName  = "";
 					this.global_varValue = "";
 					visit(ctx.getChild(1));
 					System.out.println(this.true_varName + "'=" + this.global_varValue + "∧" + "Same("
@@ -126,14 +126,14 @@ class MyVisitor extends HelloBaseVisitor<Integer> {
 				}
 			} else {
 				visit(ctx.getChild(0));
-				String in_pc = GetInPC();
+				String in_pc  = GetInPC();
 				String out_pc = GetOutPC("seq");
 				System.out.println(this.true_varName + "'=" + this.global_varValue + "∧" + "Same(" + this.true_varName
 						+ ")" + "∧" + "pc=" + in_pc + "∧" + "pc'=" + out_pc);
 				visit(ctx.getChild(1));
 			}
 		} else {
-			global_varName = "";
+			global_varName  = "";
 			global_varValue = "";
 			System.out.println("hi");
 			visit(ctx.getChild(0));
@@ -184,8 +184,8 @@ class MyVisitor extends HelloBaseVisitor<Integer> {
 
 	@Override
 	public Integer visitWhilenode(HelloParser.WhilenodeContext ctx) {
-		String in_pc = GetInPC();
-		int first_out = ++while_seq;
+		String in_pc     = GetInPC();
+		int    first_out = ++while_seq;
 
 		this.global_bexpr = "";
 		visit(ctx.bexpr());
@@ -227,8 +227,8 @@ class MyVisitor extends HelloBaseVisitor<Integer> {
 				visit(ctx.statement());
 				System.out.println(this.true_varName + "'=" + this.global_varValue + "∧" + "Same(" + this.true_varName
 						+ ")" + "∧" + "pc=" + in_pc + "∧" + "pc'=L" + String.valueOf(this.label_seq));
-				this.true_varName = "";
-				this.global_varName = "";
+				this.true_varName    = "";
+				this.global_varName  = "";
 				this.global_varValue = "";
 			} else {
 				visit(ctx.statement());
@@ -240,9 +240,9 @@ class MyVisitor extends HelloBaseVisitor<Integer> {
 	@Override
 	public Integer visitAssigmentnode(HelloParser.AssigmentnodeContext ctx) {
 		global_varName = "";
-		true_varName = "";
+		true_varName   = "";
 		visit(ctx.getChild(0));
-		true_varName = global_varName;
+		true_varName    = global_varName;
 		global_varValue = "";
 		visit(ctx.getChild(2));
 
@@ -334,7 +334,7 @@ class MyVisitor extends HelloBaseVisitor<Integer> {
 		if (ctx.plusnode() != null) {
 			visit(ctx.expr(0));
 
-			global_bexpr += "+";
+			global_bexpr    += "+";
 			global_varValue += "+";
 
 			visit(ctx.expr(1));
@@ -345,7 +345,7 @@ class MyVisitor extends HelloBaseVisitor<Integer> {
 
 			visit(ctx.expr(0));
 
-			global_bexpr += "-";
+			global_bexpr    += "-";
 			global_varValue += "-";
 			visit(ctx.expr(1));
 
@@ -353,7 +353,7 @@ class MyVisitor extends HelloBaseVisitor<Integer> {
 		if (ctx.timesnode() != null) {
 
 			visit(ctx.expr(0));
-			global_bexpr += "*";
+			global_bexpr    += "*";
 			global_varValue += "*";
 			visit(ctx.expr(1));
 
@@ -370,14 +370,14 @@ class MyVisitor extends HelloBaseVisitor<Integer> {
 			visit(ctx.bracketnode());
 
 		if (ctx.notnode() != null) {
-			global_bexpr += "!";
+			global_bexpr    += "!";
 			global_varValue += "!";
 			visit(ctx.bexpr(0));
 		}
 
 		if (ctx.andnode() != null) {
 			visit(ctx.bexpr(0));
-			global_bexpr += "&";
+			global_bexpr    += "&";
 			global_varValue += "&";
 			visit(ctx.bexpr(1));
 		}
@@ -386,21 +386,21 @@ class MyVisitor extends HelloBaseVisitor<Integer> {
 			// isit(ctx.ornode());
 			visit(ctx.bexpr(0));
 
-			global_bexpr += "|";
+			global_bexpr    += "|";
 			global_varValue += "|";
 			visit(ctx.bexpr(1));
 		}
 
 		if (ctx.lessernode() != null) {
 			visit(ctx.expr(0));
-			global_bexpr += "<";
+			global_bexpr    += "<";
 			global_varValue += "<";
 			visit(ctx.expr(1));
 		}
 		if (ctx.equalnode() != null) {
 			visit(ctx.equalnode());
 			visit(ctx.expr(0));
-			global_bexpr += "==";
+			global_bexpr    += "==";
 			global_varValue += "==";
 			visit(ctx.expr(1));
 		}
@@ -410,18 +410,18 @@ class MyVisitor extends HelloBaseVisitor<Integer> {
 
 	@Override
 	public Integer visitIntnode(HelloParser.IntnodeContext ctx) {
-		global_varName += ctx.getText();
+		global_varName  += ctx.getText();
 		global_varValue += ctx.getText();
-		global_bexpr += ctx.getText();
+		global_bexpr    += ctx.getText();
 
 		return 0;
 	}
 
 	@Override
 	public Integer visitVarnode(HelloParser.VarnodeContext ctx) {
-		global_varName += ctx.getText();
+		global_varName  += ctx.getText();
 		global_varValue += ctx.getText();
-		global_bexpr += ctx.getText();
+		global_bexpr    += ctx.getText();
 
 		return 0;
 	}
@@ -429,7 +429,7 @@ class MyVisitor extends HelloBaseVisitor<Integer> {
 	@Override
 	public Integer visitBoolnode(HelloParser.BoolnodeContext ctx) {
 
-		global_bexpr += ctx.getText();
+		global_bexpr    += ctx.getText();
 		global_varValue += ctx.getText();
 
 		return 0;
