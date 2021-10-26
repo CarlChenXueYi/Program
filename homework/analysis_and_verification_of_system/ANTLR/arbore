@@ -3,18 +3,18 @@ y := 0;L2:
 z := 0;L3:
 x := y + 1;L4:
 z := z + 2;L5:
-while (y < 3 )
-do L₁:
+while W1 (y < 3 )
+do W1:
 {
-    if (x < y ) then L₁₁:
+    if (x < y ) then I1:
     {
     x := x + 1;
     }
-    else L₂₂
+    else I2
     {
     y := y + 1;
     }
     L6:
-    y := y + 1;
+    y := y + 2;
 }
 L7:

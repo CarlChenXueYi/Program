@@ -1,0 +1,29 @@
+一、 面积限制，求功耗最小
+model:
+min=area;
+software_power=(1-x0)*0.55+(1-x1)*0.23+(1-x2)*0.22+(1-x3)*0.37+(1-x4)*0.45+(1-x5)*0.39;
+hardware_power=x0*0.34+x1*0.38+x2*0.17+x3*0.57+x4*0.33+x5*0.27;
+area=x0*0.413+x1*0.531+x2*0.216+x3*0.330+x4*0.363+x5*0.424;
+software_power+hardware_power<=【此处值可为2mw、2.2mw、2.5mw】;
+@bin(x0);
+@bin(x1);
+@bin(x2);
+@bin(x3);
+@bin(x4);
+@bin(x5);
+end
+
+二、 功耗限制，求面积最小
+model:
+min=software_power+hardware_power;
+software_power=(1-x0)*0.55+(1-x1)*0.23+(1-x2)*0.22+(1-x3)*0.37+(1-x4)*0.45+(1-x5)*0.39;
+hardware_power=x0*0.34+x1*0.38+x2*0.17+x3*0.57+x4*0.33+x5*0.27;
+area=x0*0.413+x1*0.531+x2*0.216+x3*0.330+x4*0.363+x5*0.424;
+area<=【此处值可为1.5mm、1.8mm、2.0mm】;
+@bin(x0);
+@bin(x1);
+@bin(x2);
+@bin(x3);
+@bin(x4);
+@bin(x5);
+end

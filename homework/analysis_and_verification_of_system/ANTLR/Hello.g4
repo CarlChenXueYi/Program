@@ -39,6 +39,7 @@ assigmentnode : varnode ':=' expr ';';
 statement 	  : assigmentnode | whilenode | ifnode;
 
 ifnode 		  : 'if' bexpr 'then' blocknode 'else' blocknode ;
+
 whilenode 	  :	'while' bexpr 'do' blocknode ;
 boolnode 	  : BVAL ;
 varnode 	  : VAR ;

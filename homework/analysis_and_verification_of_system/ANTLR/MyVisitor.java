@@ -2,6 +2,7 @@ import java.lang.Integer;
 import java.util.Stack;
 
 import javax.lang.model.util.ElementScanner6;
+import javax.print.DocFlavor.STRING;
 
 class MyVisitor extends HelloBaseVisitor<Integer> {
 	private int label_seq          = 0;
@@ -11,6 +12,10 @@ class MyVisitor extends HelloBaseVisitor<Integer> {
 	private String global_varName  = "";
 	private String true_varName;
 	private String global_bexpr = "";
+	private String last_ifOutcome = "";
+	//解决while回到循环重新开始，添加一个栈来存String global_whileIncome
+	private Stack<String> whileIncome = new Stack<String>();
+	private Stack<String> ifOutcome = new Stack<String>();
 
 	private boolean global_in_if    = false;
 	private boolean global_in_while = false;
@@ -24,61 +29,85 @@ class MyVisitor extends HelloBaseVisitor<Integer> {
 	// }
 	// }
 
-	public String GetInPC() {
-		String in_pc;
-		in_pc = "L" + String.valueOf(this.label_seq);
-		if (this.global_in_if) {
-			in_pc             = "I" + String.valueOf(this.if_seq);
-			this.global_in_if = false;
+	// public String GetInPC() {
+	// 	String in_pc;
+	// 	in_pc = "L" + String.valueOf(this.label_seq);
+	// 	if (this.global_in_if) {
+	// 		in_pc             = "I" + String.valueOf(this.if_seq);
+	// 		this.global_in_if = false;
+	// 	}
+	// 	if (this.global_in_while) {
+	// 		in_pc                = "W" + String.valueOf(this.while_seq);
+	// 		this.global_in_while = false;
+	// 	}
+	// 	return in_pc;
+	// }
+
+	// public String GetLastPC() {
+	// 	String out_pc;
+	// 	out_pc = "L" + String.valueOf(++this.label_seq);
+	// 	if (st.isEmpty())
+	// 		return out_pc;
+
+	// 	int temp = st.pop();
+
+	// 	if (st.isEmpty()) {
+	// 		st.push(temp);
+	// 		return out_pc;
+	// 	}
+
+	// 	temp = st.peek();
+	// 	if (temp == 1) {
+	// 		while_seq++;
+	// 		out_pc = "W" + String.valueOf(while_seq);
+	// 	}
+	// 	if (temp == 2) {
+	// 		if_seq++;
+	// 		out_pc = "I" + String.valueOf(if_seq);
+	// 	}
+	// 	return out_pc;
+	// }
+
+	//返回0代表什么里面都不在，返回1代表在while中，返回2代表再if中
+	public int GetPosition()
+	{
+		int temp;
+		if (!st.isEmpty())
+		{
+			temp = st.peek();
+			return temp;
 		}
-		if (this.global_in_while) {
-			in_pc                = "W" + String.valueOf(this.while_seq);
-			this.global_in_while = false;
-		}
-		return in_pc;
+		return 0;
 	}
+	//statement：statement情况下获取pc'
+	// public String judgeIsWhileOutPC() {
+	// 	String out_pc;
+	// 	if (!this.whileIncome.isEmpty())
+	// 	{
+	// 		out_pc = this.whileIncome.peek();
+	// 		this.whileIncome.pop();
+	// 		return out_pc;
+	// 	}
+	// 	//这里能++吗？如果是if第一个，那么就有问题了
+	// 	return "L" + String.valueOf(++label_seq);
+	// }
 
-	public String GetLastPC() {
-		String out_pc;
-		out_pc = "L" + String.valueOf(++this.label_seq);
-		if (st.isEmpty())
-			return out_pc;
-
-		int temp = st.pop();
-
-		if (st.isEmpty()) {
-			st.push(temp);
-			return out_pc;
-		}
-
-		temp = st.peek();
-		if (temp == 1) {
-			while_seq++;
-			out_pc = "W" + String.valueOf(while_seq);
-		}
-		if (temp == 2) {
-			if_seq++;
-			out_pc = "I" + String.valueOf(if_seq);
-		}
-		return out_pc;
-	}
-
-	public String GetOutPC(String func) {
-		// String out_pc;
-		if (func == "seq") {
-			return "L" + String.valueOf(++this.label_seq);
-		}
-		if (func == "if") {
-			this.if_seq++;
-			return "I" + String.valueOf(if_seq);
-		}
-		if (func == "while") {
-			this.while_seq++;
-			return "W" + String.valueOf(while_seq);
-		}
-		return "";
-		// return out_pc;
-	}
+	// public String GetOutPC(String func) {
+	// 	// String out_pc;
+	// 	if (func == "seq") {
+	// 		return "L" + String.valueOf(++this.label_seq);
+	// 	}
+	// 	if (func == "if") {
+	// 		this.if_seq++;
+	// 		return "I" + String.valueOf(if_seq);
+	// 	}
+	// 	if (func == "while") {
+	// 		this.while_seq++;
+	// 		return "W" + String.valueOf(while_seq);
+	// 	}
+	// 	return "";
+	// 	// return out_pc;
+	// }
 
 	@Override
 	public Integer visitMainnode(HelloParser.MainnodeContext ctx) {
@@ -92,69 +121,186 @@ class MyVisitor extends HelloBaseVisitor<Integer> {
 
 	@Override
 	public Integer visitSequencenode(HelloParser.SequencenodeContext ctx) {
-		if (ctx.statement(0) != null && ctx.getChild(1) != null) {
-			if (ctx.sequencenode() == null) {
-
-				// if (ctx.getChild(1) == )
-				if (ctx.statement(0).assigmentnode() == null) {
-					visit(ctx.getChild(0));
-					String in_pc = GetInPC();
-					visit(ctx.getChild(1));
-					System.out.println(this.true_varName + "'=" + this.global_varValue + "∧" + "Same("
-							+ this.true_varName + ")" + "∧" + "pc=" + in_pc + "∧" + "pc'=" + GetLastPC());
-				} else if (ctx.statement(1).assigmentnode() == null) {
-					visit(ctx.getChild(0));
-					String in_pc  = GetInPC();
-					String out_pc = GetLastPC();
-					System.out.println(this.true_varName + "'=" + this.global_varValue + "∧" + "Same("
-							+ this.true_varName + ")" + "∧" + "pc=" + in_pc + "∧" + "pc'=" + out_pc);
-					this.true_varName    = "";
-					this.global_varName  = "";
-					this.global_varValue = "";
-					visit(ctx.getChild(1));
-				} else {
-					visit(ctx.getChild(0));
-					String in_pc = GetInPC();
-					System.out.println(this.true_varName + "'=" + this.global_varValue + "∧" + "Same("
-							+ this.true_varName + ")" + "∧" + "pc=" + in_pc + "∧" + "pc'=" + GetLastPC());
-					this.true_varName    = "";
-					this.global_varName  = "";
-					this.global_varValue = "";
-					visit(ctx.getChild(1));
-					System.out.println(this.true_varName + "'=" + this.global_varValue + "∧" + "Same("
-							+ this.true_varName + ")" + "∧" + "pc=" + in_pc + "∧" + "pc'=" + GetLastPC());
-				}
-			} else {
+		// System.out.println("seq");
+		// System.out.println(ctx.getChild(0));
+		// System.out.println(ctx.getChild(1));
+		//new content
+		//statement：seq与statement：statement区别：   后一个节点是不是要输出
+		if (ctx.sequencenode() != null)
+		{
+			//assign与while/if区别，这里是不是要处理
+			if (ctx.statement(0).assigmentnode() != null)
+			{
 				visit(ctx.getChild(0));
-				String in_pc  = GetInPC();
-				String out_pc = GetOutPC("seq");
-				System.out.println(this.true_varName + "'=" + this.global_varValue + "∧" + "Same(" + this.true_varName
-						+ ")" + "∧" + "pc=" + in_pc + "∧" + "pc'=" + out_pc);
+				String in_pc = "L" + String.valueOf(label_seq);
+				String out_pc = "L" + String.valueOf(++label_seq);
+
+				System.out.println(this.true_varName + "'=" + this.global_varValue + "∧" + "Same("
+							+ this.true_varName + ")" + "∧" + "pc=" + in_pc + "∧" + "pc'=" + out_pc);
 				visit(ctx.getChild(1));
 			}
-		} else {
-			global_varName  = "";
-			global_varValue = "";
-			System.out.println("hi");
-			visit(ctx.getChild(0));
-			visit(ctx.getChild(1));
+			// case 3   while/if:while/if
+			if (ctx.statement(0).whilenode() != null || ctx.statement(0).ifnode() != null)
+			{
+				visit(ctx.getChild(0));
+				visit(ctx.getChild(1));
+			}
 		}
+		else //statement : statement
+		{
+			//都是assign，都需要输出
+			// 特殊点，这是某个最后的地方为ass：ass的情况，如果是在while里面，那么是不往下面走的，而是要回while起点
+			//if (ctx.statement(0).assigmentnode())
+
+			if ((ctx.statement(0).assigmentnode() != null) && (ctx.statement(1).assigmentnode() != null))
+			{
+				visit(ctx.getChild(0));
+				String in_pc = "L" + String.valueOf(label_seq);
+				String out_pc = "L" + String.valueOf(++label_seq);
+
+				System.out.println(this.true_varName + "'=" + this.global_varValue + "∧" + "Same("
+							+ this.true_varName + ")" + "∧" + "pc=" + in_pc + "∧" + "pc'=" + out_pc);
+
+				visit(ctx.getChild(1));
+
+				int pos = GetPosition();
+				if (pos == 1)
+				{
+					out_pc = whileIncome.peek();
+				}
+				else if (pos == 2) //表明在第一个if里面，则label_seq
+				{
+					out_pc = ifOutcome.peek();
+				}
+				else out_pc = "L" + String.valueOf(++label_seq);
+				
+				in_pc = "L" + String.valueOf(label_seq);
+
+				System.out.println(this.true_varName + "'=" + this.global_varValue + "∧" + "Same("
+							+ this.true_varName + ")" + "∧" + "pc=" + in_pc + "∧" + "pc'=" + out_pc);
+				
+			}
+
+			if ((ctx.statement(0).whilenode() != null) && ctx.statement(1).assigmentnode() != null)
+			{
+				visit(ctx.getChild(0));
+				visit(ctx.getChild(1));
+				String in_pc = "L" + String.valueOf(label_seq);
+				String out_pc;
+				int pos = GetPosition();
+				if (pos == 1)
+				{
+					out_pc = whileIncome.peek();
+				}
+				else if (pos == 2)
+				{
+					out_pc = ifOutcome.peek();
+				}
+				else out_pc = "L" + String.valueOf(++label_seq);
+				System.out.println(this.true_varName + "'=" + this.global_varValue + "∧" + "Same("
+							+ this.true_varName + ")" + "∧" + "pc=" + in_pc + "∧" + "pc'=" + out_pc);
+			}
+			if (ctx.statement(0).ifnode() != null && ctx.statement(1).assigmentnode() != null)
+			{
+				visit(ctx.getChild(0));
+				visit(ctx.getChild(1));
+				String in_pc = last_ifOutcome;
+				last_ifOutcome = "";
+				String out_pc;
+				int pos = GetPosition();
+				if (pos == 1)
+				{
+					out_pc = whileIncome.peek();
+				}
+				else if (pos == 2)
+				{
+					out_pc = ifOutcome.peek();
+				}
+				else out_pc = "L" + String.valueOf(++label_seq);
+				System.out.println(this.true_varName + "'=" + this.global_varValue + "∧" + "Same("
+							+ this.true_varName + ")" + "∧" + "pc=" + in_pc + "∧" + "pc'=" + out_pc);
+			}
+			if (ctx.statement(0).assigmentnode() != null && ctx.statement(1).whilenode() != null)
+			{
+				visit(ctx.getChild(0));
+				String in_pc = "L" + String.valueOf(label_seq);
+				String out_pc = "L" + String.valueOf(++label_seq);
+
+				System.out.println(this.true_varName + "'=" + this.global_varValue + "∧" + "Same("
+							+ this.true_varName + ")" + "∧" + "pc=" + in_pc + "∧" + "pc'=" + out_pc);
+				visit(ctx.getChild(1));
+			}
+		}
+
+		this.global_in_if = false;
+		this.global_in_while = false;
+
+
+
+		//old content
+		// if (ctx.statement(0) != null && ctx.getChild(1) != null) {
+		// 	if (ctx.sequencenode() == null) {
+
+		// 		// if (ctx.getChild(1) == )
+		// 		if (ctx.statement(0).assigmentnode() == null) {
+		// 			visit(ctx.getChild(0));
+		// 			String in_pc = GetInPC();
+		// 			visit(ctx.getChild(1));
+		// 			System.out.println(this.true_varName + "'=" + this.global_varValue + "∧" + "Same("
+		// 					+ this.true_varName + ")" + "∧" + "pc=" + in_pc + "∧" + "pc'=" + GetLastPC());
+		// 		} else if (ctx.statement(1).assigmentnode() == null) {
+		// 			visit(ctx.getChild(0));
+		// 			String in_pc  = GetInPC();
+		// 			String out_pc = GetLastPC();
+		// 			System.out.println(this.true_varName + "'=" + this.global_varValue + "∧" + "Same("
+		// 					+ this.true_varName + ")" + "∧" + "pc=" + in_pc + "∧" + "pc'=" + out_pc);
+		// 			this.true_varName    = "";
+		// 			this.global_varName  = "";
+		// 			this.global_varValue = "";
+		// 			visit(ctx.getChild(1));
+		// 		} else {
+		// 			visit(ctx.getChild(0));
+		// 			String in_pc = GetInPC();
+		// 			System.out.println(this.true_varName + "'=" + this.global_varValue + "∧" + "Same("
+		// 					+ this.true_varName + ")" + "∧" + "pc=" + in_pc + "∧" + "pc'=" + GetLastPC());
+		// 			this.true_varName    = "";
+		// 			this.global_varName  = "";
+		// 			this.global_varValue = "";
+		// 			visit(ctx.getChild(1));
+		// 			System.out.println(this.true_varName + "'=" + this.global_varValue + "∧" + "Same("
+		// 					+ this.true_varName + ")" + "∧" + "pc=" + in_pc + "∧" + "pc'=" + GetLastPC());
+		// 		}
+		// 	} else {
+		// 		visit(ctx.getChild(0));
+		// 		String in_pc  = GetInPC();
+		// 		String out_pc = GetOutPC("seq");
+		// 		System.out.println(this.true_varName + "'=" + this.global_varValue + "∧" + "Same(" + this.true_varName
+		// 				+ ")" + "∧" + "pc=" + in_pc + "∧" + "pc'=" + out_pc);
+		// 		visit(ctx.getChild(1));
+		// 	}
+		// } else {
+		// 	global_varName  = "";
+		// 	global_varValue = "";
+		// 	System.out.println("hi");
+		// 	visit(ctx.getChild(0));
+		// 	visit(ctx.getChild(1));
+		// }
 
 		return 0;
 	}
 
 	@Override
 	public Integer visitIfnode(HelloParser.IfnodeContext ctx) {
-		String in_pc = GetInPC();
+		String in_pc = "L" + String.valueOf(label_seq);
 
-		int first_out = ++if_seq;
-
+		String ifOutcomeLabel = "L" + String.valueOf(++label_seq);
+		ifOutcome.push(ifOutcomeLabel);
+		last_ifOutcome = ifOutcomeLabel;
 		global_bexpr = "";
 		visit(ctx.bexpr());
 		String bexpr = this.global_bexpr;
-		System.out.println(this.global_bexpr + "∧same(V)∧pc=" + in_pc + "∧pc'=I" + String.valueOf(first_out));
+		System.out.println(this.global_bexpr + "∧same(V)∧pc=" + in_pc + "∧pc'=L" + String.valueOf(++label_seq));
 		this.global_in_if = true;
-		++this.label_seq;
 		st.push(2);
 		visit(ctx.blocknode(0));
 		st.pop();
@@ -169,8 +315,8 @@ class MyVisitor extends HelloBaseVisitor<Integer> {
 		// true_varName + "'=" + global_varValue + "∧same(" + true_varName + ")∧pc=" +
 		// in_pc + "pc'=" + out_pc);
 
-		int second_out = ++if_seq;
-		System.out.println("¬" + bexpr + "∧same(V)∧pc=" + in_pc + "∧pc'=I" + String.valueOf(second_out));
+
+		System.out.println("¬" + bexpr + "∧same(V)∧pc=" + in_pc + "∧pc'=L" + String.valueOf(++label_seq));
 		this.global_bexpr = "";
 		this.global_in_if = true;
 		st.push(2);
@@ -179,28 +325,48 @@ class MyVisitor extends HelloBaseVisitor<Integer> {
 		// System.out.println(
 		// true_varName + "'=" + global_varValue + "∧same(" + true_varName + ")∧pc=" +
 		// in_pc + "pc'=" + out_pc);
+		ifOutcome.pop();
 		return 0;
 	}
 
 	@Override
 	public Integer visitWhilenode(HelloParser.WhilenodeContext ctx) {
-		String in_pc     = GetInPC();
-		int    first_out = ++while_seq;
+		//new content
+		String in_pc = "L" + String.valueOf(label_seq);
+		whileIncome.push(in_pc);
 
 		this.global_bexpr = "";
 		visit(ctx.bexpr());
 		String bexpr = this.global_bexpr;
-		System.out.println(this.global_bexpr + "∧Same(V)∧pc=" + in_pc + "∧pc'=W" + String.valueOf(first_out));
+		System.out.println(this.global_bexpr + "∧Same(V)∧pc=" + in_pc + "∧pc'=L" + String.valueOf(++label_seq));
 
 		this.global_in_while = true;
 		st.push(1);
 		visit(ctx.blocknode());
 		st.pop();
-		if (ctx.blocknode().sequencenode() == null) {
-			++label_seq;
-		}
-		System.out.println("¬" + bexpr + "∧Same(V)∧pc=" + in_pc + "∧pc'=L" + String.valueOf(label_seq));
+		// if (ctx.blocknode().sequencenode() == null) {
+		// 	++label_seq;
+		// }
+		System.out.println("¬" + bexpr + "∧Same(V)∧pc=" + in_pc + "∧pc'=L" + String.valueOf(++label_seq));
 
+		//old content 
+		// String in_pc     = GetInPC();
+		// int    first_out = ++while_seq;
+
+		// this.global_bexpr = "";
+		// visit(ctx.bexpr());
+		// String bexpr = this.global_bexpr;
+		// System.out.println(this.global_bexpr + "∧Same(V)∧pc=" + in_pc + "∧pc'=W" + String.valueOf(first_out));
+
+		// this.global_in_while = true;
+		// st.push(1);
+		// visit(ctx.blocknode());
+		// st.pop();
+		// if (ctx.blocknode().sequencenode() == null) {
+		// 	++label_seq;
+		// }
+		// System.out.println("¬" + bexpr + "∧Same(V)∧pc=" + in_pc + "∧pc'=L" + String.valueOf(label_seq));
+		whileIncome.pop();
 		return 0;
 	}
 
@@ -223,10 +389,22 @@ class MyVisitor extends HelloBaseVisitor<Integer> {
 		}
 		if (ctx.statement() != null) {
 			if (ctx.statement().assigmentnode() != null) {
-				String in_pc = GetInPC();
+				String in_pc = "L" + String.valueOf(label_seq);
+				String out_pc;
+				int pos = GetPosition();
+				if (pos == 1)
+				{
+					out_pc = whileIncome.peek();
+				}
+				else if (pos == 2) //表明在第一个if里面，则label_seq
+				{
+					out_pc = ifOutcome.peek();
+				}
+				else out_pc = "L" + String.valueOf(++label_seq);
 				visit(ctx.statement());
+
 				System.out.println(this.true_varName + "'=" + this.global_varValue + "∧" + "Same(" + this.true_varName
-						+ ")" + "∧" + "pc=" + in_pc + "∧" + "pc'=L" + String.valueOf(this.label_seq));
+						+ ")" + "∧" + "pc=" + in_pc + "∧" + "pc'=" + out_pc);
 				this.true_varName    = "";
 				this.global_varName  = "";
 				this.global_varValue = "";
