@@ -18,11 +18,11 @@ public class Main {
         boolean lexicalSyntaxErrors = false;
 
         // Deschidem fisierul input pentru a incepe parsarea
-        String fileName = "input1";
+        String fileName = "input";
         CharStream input = CharStreams.fromFileName(fileName);
 
         try {
-            System.setOut(new PrintStream(new File("labeled")));
+            System.setOut(new PrintStream(new File("firstOrder_Output")));
         } catch (Exception e) {
             e.printStackTrace();
         }
