@@ -1,0 +1,12 @@
+x'=0∧Same(x)∧pc=L0∧pc'=L1 ∨
+y'=0∧Same(y)∧pc=L1∧pc'=L2 ∨
+z'=0∧Same(z)∧pc=L2∧pc'=L3 ∨
+x'=y+1∧Same(x)∧pc=L3∧pc'=L4 ∨
+z'=z+2∧Same(z)∧pc=L4∧pc'=L5 ∨
+(y<3)∧Same(V)∧pc=L5∧pc'=L6 ∨
+(x<y)∧Same(V)∧pc=L6∧pc'=L8 ∨
+x'=x+1∧Same(x)∧pc=L8∧pc'=L7 ∨
+!(x<y)∧Same(V)∧pc=L6∧pc'=L9 ∨
+y'=y+1∧Same(y)∧pc=L9∧pc'=L7 ∨
+y'=y+2∧Same(y)∧pc=L7∧pc'=L5 ∨
+!(y<3)∧Same(V)∧pc=L5∧pc'=L10 ∨

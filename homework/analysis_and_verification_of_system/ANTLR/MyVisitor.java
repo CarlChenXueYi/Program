@@ -175,7 +175,7 @@ class MyVisitor extends HelloBaseVisitor<Integer> {
 		st.pop();
 
 
-		System.out.println("¬" + bexpr + "∧Same(V)∧pc=" + in_pc + "∧pc'=L" + String.valueOf(++label_seq) + " ∨");
+		System.out.println("!" + bexpr + "∧Same(V)∧pc=" + in_pc + "∧pc'=L" + String.valueOf(++label_seq) + " ∨");
 		this.global_bexpr = "";
 		this.global_in_if = true;
 		st.push(2);
@@ -199,7 +199,7 @@ class MyVisitor extends HelloBaseVisitor<Integer> {
 		st.push(1);
 		visit(ctx.blocknode());
 		st.pop();
-		System.out.println("¬" + bexpr + "∧Same(V)∧pc=" + in_pc + "∧pc'=L" + String.valueOf(++label_seq) + " ∨");
+		System.out.println("!" + bexpr + "∧Same(V)∧pc=" + in_pc + "∧pc'=L" + String.valueOf(++label_seq) + " ∨");
 
 		whileIncome.pop();
 		return 0;
